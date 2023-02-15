@@ -2,9 +2,8 @@ db:
   username: postgres
   password: postgres
   driver: PostgresDriver
-  url: postgres:5432
+  url: postgres:5433
   hosts: localhost
-
 
   pool:
     size: 10
@@ -15,7 +14,14 @@ db:
     - size: 2
       timeout: 3
 
+
 spring:
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/
+      suffix: .jsp
+    format:
+      date: iso
   datasource:
     url: jdbc:postgresql://localhost:5433/spring_test
     username: postgres
@@ -23,15 +29,39 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     properties.hibernate:
+      batch_size: 50
+      fetch_size: 50
       show_sql: true
       format_sql: true
       hbm2ddl.auto: validate
+    open-in-view: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: 442374529002-gc5j78t4c8gs5cci8prc7na1utmhsm61.apps.googleusercontent.com
+            clientSecret: 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
+            redirectUri: http://localhost:8080/login/oauth2/code/google
+            scope: openid,email,profile
+  messages:
+    basename: messages
 
 logging:
   level:
     root: INFO
     com.plaxa.spring_course.repository: INFO
+    org.springframework.jdbc.core: TRACE
   file:
     name: plaxa.log
     path: /
 
+springdoc:
+  swagger-ui:
+    oauth:
+      client-id: 442374529002-gc5j78t4c8gs5cci8prc7na1utmhsm61.apps.googleusercontent.com
+      client-secret: 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
+      scopes: openid, email, profile
+    oauth2-redirect-url: http://localhost:8080/swagger-ui/oauth2-redirect.html
+server:
+  port: 8081

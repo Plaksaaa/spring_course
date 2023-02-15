@@ -4,55 +4,8 @@
       "name": "db",
       "type": "com.plaxa.spring_course.config.DatabaseProperties",
       "sourceType": "com.plaxa.spring_course.config.DatabaseProperties"
-    },
-    {
-      "name": "db.pool",
-      "type": "com.plaxa.spring_course.config.DatabaseProperties$PoolProperties",
-      "sourceType": "com.plaxa.spring_course.config.DatabaseProperties",
-      "sourceMethod": "getPool()"
     }
   ],
-  "properties": [
-    {
-      "name": "db.driver",
-      "type": "java.lang.String",
-      "sourceType": "com.plaxa.spring_course.config.DatabaseProperties"
-    },
-    {
-      "name": "db.hosts",
-      "type": "java.lang.String",
-      "sourceType": "com.plaxa.spring_course.config.DatabaseProperties"
-    },
-    {
-      "name": "db.password",
-      "type": "java.lang.String",
-      "sourceType": "com.plaxa.spring_course.config.DatabaseProperties"
-    },
-    {
-      "name": "db.pool.size",
-      "type": "java.lang.Integer",
-      "sourceType": "com.plaxa.spring_course.config.DatabaseProperties$PoolProperties"
-    },
-    {
-      "name": "db.pool.timeout",
-      "type": "java.lang.Integer",
-      "sourceType": "com.plaxa.spring_course.config.DatabaseProperties$PoolProperties"
-    },
-    {
-      "name": "db.pools",
-      "type": "java.util.List<com.plaxa.spring_course.config.DatabaseProperties$PoolProperties>",
-      "sourceType": "com.plaxa.spring_course.config.DatabaseProperties"
-    },
-    {
-      "name": "db.url",
-      "type": "java.lang.String",
-      "sourceType": "com.plaxa.spring_course.config.DatabaseProperties"
-    },
-    {
-      "name": "db.username",
-      "type": "java.lang.String",
-      "sourceType": "com.plaxa.spring_course.config.DatabaseProperties"
-    }
-  ],
+  "properties": [],
   "hints": []
 }

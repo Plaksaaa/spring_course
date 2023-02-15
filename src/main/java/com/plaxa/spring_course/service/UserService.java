@@ -1,19 +1,124 @@
 package com.plaxa.spring_course.service;
 
-import com.plaxa.spring_course.repository.CompanyRepository;
+import com.plaxa.spring_course.dto.UserCreateEditDto;
+import com.plaxa.spring_course.dto.UserFilter;
+import com.plaxa.spring_course.dto.UserReadDto;
+import com.plaxa.spring_course.entity.User;
+import com.plaxa.spring_course.mapper.UserCreateEditMapper;
+import com.plaxa.spring_course.mapper.UserReadMapper;
 import com.plaxa.spring_course.repository.UserRepository;
+import com.plaxa.spring_course.repository.querydsl.QPredicates;
+import com.querydsl.core.types.Predicate;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import static com.plaxa.spring_course.entity.QUser.user;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+@Transactional(readOnly = true)
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
-    private final CompanyRepository companyRepository;
+    private final UserReadMapper userReadMapper;
+    private final UserCreateEditMapper userCreateEditMapper;
+    private final ImageService imageService;
 
-    /*public UserService(UserRepository userRepository, CrudRepository<Integer, Company> crudRepository) {
-        this.userRepository = userRepository;
-        this.crudRepository = crudRepository;
-    }*/
+//    @PostFilter("filterObject.role().name().equals('ADMIN')")
+//    @PostFilter("@companyService.findById(filterObject.company.id()).isPresent()")
+    public Page<UserReadDto> findAll(UserFilter filter, Pageable pageable) {
+        Predicate predicate = QPredicates.builder()
+                .add(filter.firstname(), user.firstname::containsIgnoreCase)
+                .add(filter.lastname(), user.lastname::containsIgnoreCase)
+                .add(filter.birthDate(), user.birthDate::before)
+                .build();
+        return userRepository.findAll(predicate, pageable)
+                .map(userReadMapper::map);
+        /*return userRepository.findAllByFilter(filter).stream()
+                .map(userReadMapper::map)
+                .toList();*/
+    }
+
+    public List<UserReadDto> findAll() {
+        return userRepository.findAll().stream()
+                .map(userReadMapper::map)
+                .toList();
+    }
+
+    public Optional<UserReadDto> findById(Long id) {
+        return userRepository.findById(id)
+                .map(userReadMapper::map);
+    }
+
+    public Optional<byte[]> findAvatar(Long id) {
+        return userRepository.findById(id)
+                .map(User::getImage)
+                .filter(StringUtils::hasText)
+                .flatMap(imageService::get);
+    }
+
+    @Transactional
+    public UserReadDto create(UserCreateEditDto userCreateEditDto) {
+        return Optional.of(userCreateEditDto)
+                .map(dto -> {
+                    uploadImage(dto.getImage());
+                    return userCreateEditMapper.map(dto);
+                })
+                .map(userRepository::save)
+                .map(userReadMapper::map)
+                .orElseThrow();
+    }
+
+    @SneakyThrows
+    private void uploadImage(MultipartFile image) {
+        if (!image.isEmpty()) {
+            imageService.upload(image.getOriginalFilename(), image.getInputStream());
+        }
+    }
+
+    @Transactional
+    public Optional<UserReadDto> update(Long id, UserCreateEditDto userCreateEditDto) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    uploadImage(userCreateEditDto.getImage());
+                    return userCreateEditMapper.map(userCreateEditDto, user);
+                })
+                .map(userRepository::saveAndFlush)
+                .map(userReadMapper::map);
+    }
+
+    @Transactional
+    public boolean delete(Long id) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    userRepository.delete(user);
+                    userRepository.flush();
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByUsername(username)
+                .map(user -> new org.springframework.security.core.userdetails.User(
+                        user.getUsername(),
+                        user.getPassword(),
+                        Collections.singleton(user.getRole())
+                ))
+                .orElseThrow(() -> new UsernameNotFoundException("Failed to retrieve user: " + username));
+    }
 }

@@ -1,10 +1,11 @@
 package com.plaxa.spring_course.integration.repository;
 
+import com.plaxa.spring_course.dto.PersonalInfo;
 import com.plaxa.spring_course.dto.PersonalInfo2;
 import com.plaxa.spring_course.dto.UserFilter;
 import com.plaxa.spring_course.entity.Role;
 import com.plaxa.spring_course.entity.User;
-import com.plaxa.spring_course.integration.annotation.IT;
+import com.plaxa.spring_course.integration.IntegrationTestBase;
 import com.plaxa.spring_course.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
@@ -17,18 +18,40 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-@IT
 @RequiredArgsConstructor
-class UserRepositoryTest {
+class UserRepositoryTest extends IntegrationTestBase {
 
     private final UserRepository userRepository;
+
+    @Test
+    void checkBatch() {
+        List<User> users = userRepository.findAll();
+        userRepository.updateCompanyAndRole(users);
+        System.out.println();
+    }
+
+    @Test
+    void checkJdbcTemplate() {
+        List<PersonalInfo> users = userRepository.findAllByCompanyIdAndRole(1, Role.USER);
+        assertThat(users).hasSize(1);
+        System.out.println();
+    }
+
+    @Test
+//    @Commit
+    void checkAuditing() {
+        User user = userRepository.findById(1L).get();
+        user.setBirthDate(user.getBirthDate().plusYears(1));
+        userRepository.flush();
+    }
 
     @Test
     void checkCustomImplementation() {
         UserFilter filter = new UserFilter(
                 null, "%ov%", LocalDate.now()
         );
-        userRepository.findAllByFilter(filter);
+        List<User> users = userRepository.findAllByFilter(filter);
+        assertThat(users).hasSize(4);
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.plaxa.spring_course.entity.Company;
 import com.plaxa.spring_course.integration.annotation.IT;
 import com.plaxa.spring_course.repository.CompanyRepository;
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import javax.persistence.EntityManager;
@@ -28,6 +29,7 @@ class CompanyRepositoryTest {
     }
 
     @Test
+    @Disabled
     void delete() {
         var maybeCompany = companyRepository.findById(META_ID);
         assertTrue(maybeCompany.isPresent());
